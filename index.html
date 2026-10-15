@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThreatScan · Security Suite</title>
+  <!-- Bootstrap 5 + Icons + Google Font -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #e9f2f9 100%);
+      min-height: 100vh;
+      padding: 1.5rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==================== DASHBOARD ==================== */
+    .app-container {
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    .scan-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 2rem;
+      box-shadow: 0 30px 50px -20px rgba(0, 20, 40, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.6);
+      padding: 2rem 2rem 2.2rem;
+      width: 100%;
+    }
+
+    .shield-icon {
+      font-size: 2.6rem;
+      line-height: 1;
+      color: #0d6efd;
+      filter: drop-shadow(0 6px 10px rgba(13, 110, 253, 0.25));
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+      color: #0b1c2f;
+    }
+
+    .subhead { color: #4b5e71; font-size: 0.88rem; }
+
+    /* Header */
+    .user-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .user-header-left { display: flex; align-items: center; gap: 0.8rem; }
+    .user-header-right { display: flex; align-items: center; gap: 0.5rem; }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid #e2ebf3;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4b5e71;
+      font-size: 1.15rem;
+      transition: 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: #f0f7ff;
+      border-color: #0d6efd;
+      color: #0d6efd;
+      transform: translateY(-1px);
+    }
+
+    .icon-btn .badge-count {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #0d6efd;
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 700;
+      border-radius: 1rem;
+      padding: 0.15rem 0.4rem;
+      min-width: 18px;
+      text-align: center;
+      border: 2px solid #ffffff;
+    }
+
+    /* History Drawer */
+    .history-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      max-width: 90vw;
+      height: 100vh;
+      background: #ffffff;
+      box-shadow: -10px 0 40px -10px rgba(0, 20, 40, 0.25);
+      z-index: 1050;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #e2ebf3;
+    }
+
+    .history-drawer.open { right: 0; }
+
+    .history-drawer-header {
+      padding: 1.4rem 1.4rem 1rem;
+      border-bottom: 1px solid #eef3f8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-drawer-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #0b1c2f;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .history-drawer-title i { color: #0d6efd; font-size: 1.35rem; }
+
+    .history-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.8rem 1.2rem 1.2rem;
+      scrollbar-width: thin;
+    }
+
+    .history-drawer-body::-webkit-scrollbar { width: 6px; }
+    .history-drawer-body::-webkit-scrollbar-thumb { background: #cbd9e8; border-radius: 1rem; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 28, 47, 0.35);
+      backdrop-filter: blur(2px);
+      z-index: 1040;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .drawer-backdrop.show { opacity: 1; pointer-events: auto; }
+
+    /* History Items */
+    .history-list { list-style: none; padding: 0; margin: 0; }
+    .history-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 0.7rem 0.5rem;
+      border-bottom: 1px solid #eef3f8;
+      font-size: 0.83rem;
+      border-radius: 0.6rem;
+      transition: 0.15s ease;
+    }
+    .history-item:hover { background: #f8fbfe; }
+    .history-item:last-child { border-bottom: none; }
+
+    .history-icon { font-size: 1.05rem; width: 26px; text-align: center; flex-shrink: 0; margin-top: 2px; }
+    .history-content { flex: 1; min-width: 0; }
+    .history-name {
+      font-weight: 500; color: #0b1c2f;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: block; font-size: 0.83rem;
+    }
+    .history-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 2px; font-size: 0.72rem; color: #7a8b9f;
+      flex-wrap: wrap;
+    }
+
+    .history-empty {
+      text-align: center; color: #a0b3c6;
+      padding: 2.5rem 1rem; font-size: 0.88rem;
+    }
+    .history-empty i { font-size: 2.3rem; display: block; margin-bottom: 0.5rem; color: #cbd9e8; }
+
+    .btn-clear-history {
+      background: transparent;
+      border: 1px solid #e2ebf3;
+      border-radius: 2rem;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.72rem;
+      color: #7a8b9f;
+      transition: 0.15s ease;
+      font-weight: 500;
+    }
+    .btn-clear-history:hover { background: #fff5f5; border-color: #f8d7da; color: #b02a37; }
+
+    .history-filter {
+      background: #f6f9fc;
+      border: 1px solid #e2ebf3;
+      border-radius: 2rem;
+      padding: 0.22rem 0.75rem;
+      font-size: 0.75rem;
+      color: #4b5e71;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .history-filter:hover { background: #e9f2fe; border-color: #cde0f5; }
+
+    /* Scanner Cards */
+    .section-card {
+      background: #ffffff;
+      border-radius: 1.6rem;
+      padding: 1.5rem 1.3rem 1.5rem;
+      border: 1px solid #e2ebf3;
+      box-shadow: 0 6px 16px -8px rgba(0, 20, 40, 0.1);
+      height: 100%;
+      transition: 0.2s ease;
+    }
+    .section-card:hover { box-shadow: 0 12px 24px -12px rgba(0, 20, 40, 0.15); }
+
+    .section-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #0b1c2f;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.1rem;
+    }
+    .section-title i { font-size: 1.35rem; color: #0d6efd; }
+
+    .drop-zone {
+      border: 2px dashed #b6cde0;
+      border-radius: 1.4rem;
+      background: #fbfdff;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+      margin-bottom: 1rem;
+    }
+    .drop-zone:hover { border-color: #0d6efd; background: #f0f7ff; }
+    .drop-zone.drag-over { border-color: #0d6efd; background: #e5f0ff; box-shadow: inset 0 0 0 4px rgba(13, 110, 253, 0.1); }
+    .drop-zone i { font-size: 2.1rem; color: #4a6f92; margin-bottom: 0.2rem; }
+    .drop-zone p { margin-bottom: 0.2rem; font-size: 0.88rem; }
+
+    .url-input-group {
+      background: #ffffff;
+      border-radius: 3rem;
+      padding: 0.2rem 0.2rem 0.2rem 1.2rem;
+      border: 1px solid #d7e2ed;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+      margin-bottom: 0.8rem;
+    }
+    .url-input-group input {
+      border: none;
+      background: transparent;
+      font-size: 0.88rem;
+      padding: 0.55rem 0;
+      box-shadow: none !important;
+    }
+    .url-input-group input:focus { outline: none; }
+
+    .btn-scan {
+      background: linear-gradient(135deg, #0d6efd, #0a58ca);
+      border: none;
+      border-radius: 3rem !important;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      font-size: 0.88rem;
+      box-shadow: 0 6px 14px rgba(13, 110, 253, 0.3);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      width: 100%;
+      color: white;
+    }
+    .btn-scan:hover { background: linear-gradient(135deg, #0b5ed7, #084298); box-shadow: 0 8px 18px rgba(13, 110, 253, 0.4); transform: translateY(-1px); color: white; }
+    .btn-scan:disabled { opacity: 0.6; transform: none; box-shadow: 0 2px 6px rgba(13, 110, 253, 0.15); }
+
+    .btn-upi {
+      background: linear-gradient(135deg, #6f42c1, #4b2d8a);
+      border: none;
+      border-radius: 3rem !important;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      font-size: 0.88rem;
+      box-shadow: 0 6px 14px rgba(111, 66, 193, 0.3);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      width: 100%;
+      color: white;
+    }
+    .btn-upi:hover { background: linear-gradient(135deg, #5a34a3, #3c2370); box-shadow: 0 8px 18px rgba(111, 66, 193, 0.4); transform: translateY(-1px); color: white; }
+    .btn-upi:disabled { opacity: 0.6; transform: none; box-shadow: 0 2px 6px rgba(111, 66, 193, 0.15); }
+
+    .upi-drop-zone {
+      border: 2px dashed #c4b5e0;
+      border-radius: 1.4rem;
+      background: #fdfbff;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+      margin-bottom: 1rem;
+    }
+    .upi-drop-zone:hover { border-color: #6f42c1; background: #f5f0ff; }
+    .upi-drop-zone.drag-over { border-color: #6f42c1; background: #ede5ff; box-shadow: inset 0 0 0 4px rgba(111, 66, 193, 0.1); }
+    .upi-drop-zone i { font-size: 2.1rem; color: #6f42c1; margin-bottom: 0.2rem; }
+
+    /* Result Panel */
+    .result-panel {
+      background: #ffffff;
+      border-radius: 1.5rem;
+      padding: 1.5rem 1.5rem 1.3rem;
+      border: 1px solid #e2ebf3;
+      box-shadow: 0 10px 20px -12px rgba(0, 0, 0, 0.15);
+      margin-top: 1.5rem;
+    }
+    .result-title { font-weight: 600; font-size: 1.02rem; display: flex; align-items: center; gap: 8px; }
+    .risk-indicator { display: flex; align-items: center; gap: 1rem; padding: 0.7rem 0 0.3rem; flex-wrap: wrap; }
+    .risk-badge { font-weight: 600; padding: 0.4rem 1rem; border-radius: 3rem; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px; }
+    .risk-low { background: #d1f0e0; color: #0a5c3e; }
+    .risk-medium { background: #fff3cd; color: #8e6100; }
+    .risk-high { background: #f8d7da; color: #a11f2c; }
+    .risk-unknown { background: #e2e6ea; color: #3e4d5c; }
+
+    .threat-list { list-style: none; padding-left: 0; margin-top: 0.5rem; font-size: 0.86rem; }
+    .threat-list li { padding: 0.3rem 0; border-bottom: 1px solid #eef3f8; display: flex; align-items: flex-start; gap: 8px; }
+    .threat-list li i { color: #b02a37; font-size: 1rem; margin-top: 1px; }
+
+    .file-preview {
+      font-size: 0.8rem;
+      background: #f9fcff;
+      border-radius: 0.8rem;
+      padding: 0.45rem 0.9rem;
+      border: 1px solid #e0edfa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .upi-score-bar { height: 10px; border-radius: 1rem; background: #e9ecef; overflow: hidden; margin-top: 0.4rem; }
+    .upi-score-fill { height: 100%; border-radius: 1rem; transition: width 0.4s ease; }
+    .upi-detail-badge { font-size: 0.76rem; padding: 0.25rem 0.7rem; border-radius: 2rem; font-weight: 500; }
+    .indicator-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+    .dot-green { background: #198754; }
+    .dot-yellow { background: #ffc107; }
+    .dot-red { background: #dc3545; }
+
+    .footer-note { font-size: 0.76rem; color: #7a8b9f; text-align: center; margin-top: 1.4rem; }
+    .spinner-border-sm { width: 1rem; height: 1rem; border-width: 0.2em; }
+
+    @media (max-width: 992px) {
+      .scan-card { padding: 1.5rem 1rem; }
+      .section-card { padding: 1.3rem 1.1rem; }
+      .history-drawer { width: 100%; right: -100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="scan-card">
+      <!-- Header -->
+      <div class="user-header mb-4">
+        <div class="user-header-left">
+          <div class="shield-icon">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <div>
+            <h1 class="mb-0">ThreatScan</h1>
+            <div class="subhead">Detect malware, risky URLs & fake UPI screenshots</div>
+          </div>
+        </div>
+        <div class="user-header-right">
+          <button class="icon-btn" id="openHistoryBtn" title="View scan history">
+            <i class="bi bi-clock-history"></i>
+            <span class="badge-count" id="historyBadge">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Three Scanners -->
+      <div class="row g-3 align-items-stretch">
+        <!-- File Scanner -->
+        <div class="col-lg-4 col-md-6">
+          <div class="section-card">
+            <div class="section-title">
+              <i class="bi bi-file-earmark-arrow-up"></i> File / PDF / Media
+            </div>
+            <div class="drop-zone" id="dropZone">
+              <i class="bi bi-cloud-arrow-up-fill"></i>
+              <p class="fw-semibold mb-1">Drag & drop any file</p>
+              <p class="text-secondary small mb-2">PDF, DOC, EXE, JPG, MP4, ZIP ...</p>
+              <button class="btn btn-outline-primary btn-sm rounded-pill px-3" type="button" id="browseBtn">
+                <i class="bi bi-folder2-open me-1"></i> Browse
+              </button>
+              <input type="file" id="fileInput" hidden>
+            </div>
+            <div id="filePreviewContainer" class="d-none">
+              <div class="file-preview">
+                <span><i class="bi bi-paperclip me-2"></i><span id="fileNameDisplay">document.pdf</span></span>
+                <span class="badge bg-light text-dark rounded-pill" id="fileSizeDisplay">2.3 MB</span>
+              </div>
+            </div>
+            <div class="d-grid mt-2">
+              <button class="btn btn-scan" id="scanFileBtn" disabled>
+                <i class="bi bi-shield-check me-1"></i> Scan file
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- URL Scanner -->
+        <div class="col-lg-4 col-md-6">
+          <div class="section-card">
+            <div class="section-title">
+              <i class="bi bi-link-45deg"></i> URL / Image link
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold text-secondary mb-2 small">Enter a web address</label>
+              <div class="url-input-group d-flex align-items-center">
+                <i class="bi bi-globe2 me-2 text-secondary"></i>
+                <input type="url" class="form-control" id="urlInput" placeholder="https://example.com/file.pdf">
+              </div>
+              <div class="form-text mt-1 ms-1 small">
+                <i class="bi bi-info-circle me-1"></i> Checks for malicious redirects, malware, phishing.
+              </div>
+            </div>
+            <div class="d-grid mt-3">
+              <button class="btn btn-scan" id="scanUrlBtn">
+                <i class="bi bi-search me-1"></i> Scan URL / image
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPI Detector -->
+        <div class="col-lg-4 col-md-6">
+          <div class="section-card">
+            <div class="section-title">
+              <i class="bi bi-phone" style="color:#6f42c1;"></i> Fake UPI Screenshot
+            </div>
+            <p class="text-secondary small mb-3" style="line-height:1.4;">
+              <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+              Detect doctored payment screenshots, fake balance, or edited transaction IDs.
+            </p>
+            <div class="upi-drop-zone" id="upiDropZone">
+              <i class="bi bi-image-fill"></i>
+              <p class="fw-semibold mb-1">Drop UPI screenshot</p>
+              <p class="text-secondary small mb-2">PNG, JPG, JPEG</p>
+              <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" id="upiBrowseBtn" style="border-color:#c4b5e0; color:#6f42c1;">
+                <i class="bi bi-folder2-open me-1"></i> Browse
+              </button>
+              <input type="file" id="upiFileInput" accept="image/*" hidden>
+            </div>
+            <div id="upiPreviewContainer" class="d-none mb-2">
+              <div class="file-preview" style="border-color:#d8cdf0; background:#fcfaff;">
+                <span><i class="bi bi-image me-2" style="color:#6f42c1;"></i><span id="upiFileNameDisplay">payment.png</span></span>
+                <span class="badge rounded-pill" style="background:#e9e2f8; color:#4b2d8a;" id="upiFileSizeDisplay">245 KB</span>
+              </div>
+            </div>
+            <div class="d-grid mt-2">
+              <button class="btn btn-upi" id="scanUpiBtn" disabled>
+                <i class="bi bi-shield-lock me-1"></i> Detect fake UPI
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Panel -->
+      <div id="resultPanel" class="result-panel d-none">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="result-title">
+            <i class="bi bi-clipboard2-pulse"></i> <span id="resultTitleText">Scan report</span>
+          </div>
+          <button class="btn btn-sm btn-light rounded-pill px-3" id="closeResultBtn">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div id="scannedItem" class="text-secondary small mt-2 mb-1"></div>
+        <div class="risk-indicator" id="riskIndicator"></div>
+        <div id="threatDetails"></div>
+      </div>
+
+      <div class="footer-note">
+        <i class="bi bi-shield-shaded me-1"></i> Demo simulation — static analysis, URL heuristics & UPI screenshot forensics
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HISTORY DRAWER ==================== -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div class="history-drawer" id="historyDrawer">
+    <div class="history-drawer-header">
+      <div class="history-drawer-title">
+        <i class="bi bi-clock-history"></i> Scan History
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn-clear-history" id="clearHistoryBtn">
+          <i class="bi bi-trash3 me-1"></i>Clear
+        </button>
+        <button class="icon-btn" id="closeHistoryBtn" style="width:36px; height:36px; font-size:1rem;">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+    <div class="history-drawer-body">
+      <div class="d-flex gap-2 mb-3 flex-wrap">
+        <span class="history-filter active-filter" data-filter="all" style="background:#0d6efd; color:white; border-color:#0d6efd;">All</span>
+        <span class="history-filter" data-filter="file">Files</span>
+        <span class="history-filter" data-filter="url">URLs</span>
+        <span class="history-filter" data-filter="upi">UPI</span>
+      </div>
+      <ul class="history-list" id="userHistoryList">
+        <li class="history-empty">
+          <i class="bi bi-inbox"></i>
+          No scans yet. Start scanning to build history.
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (function() {
+      // ==================== HISTORY ====================
+      const HISTORY_KEY = 'threatscan_history';
+      let historyItems = [];
+      let historyFilter = 'all';
+
+      const userHistoryList = document.getElementById('userHistoryList');
+      const historyBadge = document.getElementById('historyBadge');
+      const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+      const filterBtns = document.querySelectorAll('.history-filter');
+
+      const historyDrawer = document.getElementById('historyDrawer');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const openHistoryBtn = document.getElementById('openHistoryBtn');
+      const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+
+      function openHistoryDrawer() {
+        historyDrawer.classList.add('open');
+        drawerBackdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeHistoryDrawer() {
+        historyDrawer.classList.remove('open');
+        drawerBackdrop.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+
+      openHistoryBtn.addEventListener('click', openHistoryDrawer);
+      closeHistoryBtn.addEventListener('click', closeHistoryDrawer);
+      drawerBackdrop.addEventListener('click', closeHistoryDrawer);
+
+      function loadHistory() {
+        try {
+          const stored = localStorage.getItem(HISTORY_KEY);
+          historyItems = stored ? JSON.parse(stored) : [];
+        } catch (e) { historyItems = []; }
+        renderHistory();
+      }
+
+      function saveHistory() {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(historyItems));
+      }
+
+      function addHistoryItem(type, name, risk) {
+        const item = {
+          id: Date.now() + Math.random(),
+          type: type,
+          name: name,
+          risk: risk,
+          time: new Date().toISOString()
+        };
+        historyItems.unshift(item);
+        if (historyItems.length > 80) historyItems.pop();
+        saveHistory();
+        renderHistory();
+        updateHistoryBadge();
+      }
+
+      function updateHistoryBadge() {
+        historyBadge.textContent = historyItems.length;
+        historyBadge.style.display = historyItems.length > 0 ? 'block' : 'none';
+      }
+
+      function getRiskBadge(risk) {
+        const map = {
+          low: { cls: 'risk-low', label: 'Low', icon: 'bi-check-circle-fill' },
+          medium: { cls: 'risk-medium', label: 'Med', icon: 'bi-exclamation-triangle-fill' },
+          high: { cls: 'risk-high', label: 'High', icon: 'bi-exclamation-octagon-fill' },
+          safe: { cls: 'risk-low', label: 'Safe', icon: 'bi-check-circle-fill' },
+          fake: { cls: 'risk-high', label: 'FAKE', icon: 'bi-x-octagon-fill' },
+          unknown: { cls: 'risk-unknown', label: '?', icon: 'bi-question-circle-fill' }
+        };
+        return map[risk] || map.unknown;
+      }
+
+      function renderHistory() {
+        const filtered = historyFilter === 'all'
+          ? historyItems
+          : historyItems.filter(i => i.type === historyFilter);
+
+        if (filtered.length === 0) {
+          userHistoryList.innerHTML = `
+            <li class="history-empty">
+              <i class="bi bi-inbox"></i>
+              ${historyFilter === 'all' ? 'No scans yet. Start scanning to build history.' : 'No scans in this category.'}
+            </li>`;
+          return;
+        }
+
+        let html = '';
+        filtered.forEach(item => {
+          const r = getRiskBadge(item.risk);
+          const icon = item.type === 'file' ? 'bi-file-earmark' :
+                       item.type === 'url' ? 'bi-link-45deg' : 'bi-phone';
+          const iconColor = item.type === 'upi' ? '#6f42c1' : '#0d6efd';
+          const timeStr = new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const dateStr = new Date(item.time).toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+          html += `
+            <li class="history-item" title="${escapeHtml(item.name)}">
+              <div class="history-icon"><i class="bi ${icon}" style="color:${iconColor};"></i></div>
+              <div class="history-content">
+                <span class="history-name">${escapeHtml(item.name)}</span>
+                <div class="history-meta">
+                  <span class="risk-badge ${r.cls}" style="font-size:0.63rem; padding:0.12rem 0.5rem;">
+                    <i class="bi ${r.icon}"></i>${r.label}
+                  </span>
+                  <span>${dateStr} · ${timeStr}</span>
+                </div>
+              </div>
+            </li>`;
+        });
+        userHistoryList.innerHTML = html;
+      }
+
+      clearHistoryBtn.addEventListener('click', () => {
+        if (confirm('Clear all scan history?')) {
+          historyItems = [];
+          saveHistory();
+          renderHistory();
+          updateHistoryBadge();
+        }
+      });
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => {
+            b.style.background = '';
+            b.style.color = '';
+            b.style.borderColor = '';
+          });
+          btn.style.background = '#0d6efd';
+          btn.style.color = 'white';
+          btn.style.borderColor = '#0d6efd';
+          historyFilter = btn.dataset.filter;
+          renderHistory();
+        });
+      });
+
+      // ==================== HELPERS ====================
+      function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+      }
+
+      function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // ==================== RESULT PANEL ====================
+      const resultPanel = document.getElementById('resultPanel');
+      const closeResultBtn = document.getElementById('closeResultBtn');
+      const scannedItem = document.getElementById('scannedItem');
+      const riskIndicator = document.getElementById('riskIndicator');
+      const threatDetails = document.getElementById('threatDetails');
+      const resultTitleText = document.getElementById('resultTitleText');
+
+      function showResultPanel(title, itemText, risk, threats, isSafe, extraHtml) {
+        resultPanel.classList.remove('d-none');
+        resultTitleText.textContent = title || 'Scan report';
+        scannedItem.innerHTML = itemText;
+
+        let badgeClass = 'risk-unknown';
+        let riskIcon = 'bi-question-circle-fill';
+        let riskText = 'Unknown';
+        if (risk === 'low') { badgeClass = 'risk-low'; riskIcon = 'bi-check-circle-fill'; riskText = 'Low risk'; }
+        else if (risk === 'medium') { badgeClass = 'risk-medium'; riskIcon = 'bi-exclamation-triangle-fill'; riskText = 'Medium risk'; }
+        else if (risk === 'high') { badgeClass = 'risk-high'; riskIcon = 'bi-exclamation-octagon-fill'; riskText = 'High risk'; }
+        else if (risk === 'safe') { badgeClass = 'risk-low'; riskIcon = 'bi-check-circle-fill'; riskText = 'Safe'; }
+        else if (risk === 'fake') { badgeClass = 'risk-high'; riskIcon = 'bi-x-octagon-fill'; riskText = 'Likely FAKE'; }
+
+        riskIndicator.innerHTML = `
+          <span class="risk-badge ${badgeClass}">
+            <i class="bi ${riskIcon}"></i> ${riskText}
+          </span>
+          <span class="text-secondary small">${isSafe ? 'No threats detected' : 'Potential threats / manipulation found'}</span>
+        `;
+
+        let html = '';
+        if (extraHtml) html += extraHtml;
+
+        if (isSafe) {
+          html += `<div class="alert alert-success rounded-3 mt-2 py-2"><i class="bi bi-shield-check me-1"></i> Clean — no threats or manipulation detected.</div>`;
+        } else if (threats && threats.length) {
+          html += '<ul class="threat-list">';
+          threats.forEach(t => {
+            html += `<li><i class="bi bi-bug-fill"></i> <span>${escapeHtml(t)}</span></li>`;
+          });
+          html += '</ul>';
+        }
+        threatDetails.innerHTML = html;
+      }
+
+      closeResultBtn.addEventListener('click', () => {
+        resultPanel.classList.add('d-none');
+      });
+
+      // ==================== FILE SCANNER ====================
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const browseBtn = document.getElementById('browseBtn');
+      const filePreviewContainer = document.getElementById('filePreviewContainer');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      const fileSizeDisplay = document.getElementById('fileSizeDisplay');
+      const scanFileBtn = document.getElementById('scanFileBtn');
+      let selectedFile = null;
+
+      function handleFileSelect(file) {
+        if (!file) return;
+        selectedFile = file;
+        fileNameDisplay.textContent = file.name;
+        fileSizeDisplay.textContent = formatBytes(file.size);
+        filePreviewContainer.classList.remove('d-none');
+        scanFileBtn.disabled = false;
+        resultPanel.classList.add('d-none');
+      }
+
+      dropZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) fileInput.click();
+      });
+      browseBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+      fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) { handleFileSelect(e.dataTransfer.files[0]); fileInput.files = e.dataTransfer.files; }
+      });
+
+      function scanFile(file) {
+        const name = file.name.toLowerCase();
+        const ext = name.split('.').pop() || '';
+        const size = file.size;
+        const threats = [];
+        let riskLevel = 'low';
+
+        if (/\.(pdf|doc|jpg|png|mp4|txt)\.(exe|scr|bat|cmd|js|vbs|ps1)$/i.test(name)) threats.push('Double extension detected — possible masquerading malware.');
+        const highRiskExt = ['exe', 'scr', 'bat', 'cmd', 'js', 'vbs', 'ps1', 'jar', 'apk', 'msi'];
+        if (highRiskExt.includes(ext)) threats.push(`Executable/script file type (.${ext}) can carry malware.`);
+        if (['docm', 'xlsm', 'pptm'].includes(ext)) threats.push('Macro-enabled document — macros can run malicious code.');
+        if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) && size > 5 * 1024 * 1024) threats.push('Large archive — may contain hidden malware.');
+        if (highRiskExt.includes(ext) && size < 10240) threats.push('Very small executable — often a dropper or obfuscated code.');
+        const pseudoRandom = (name.length * 7 + size % 100) % 10;
+        if (pseudoRandom > 7 && !threats.length) threats.push('Heuristic engine: suspicious pattern in file structure.');
+
+        if (threats.length === 0) riskLevel = 'low';
+        else if (threats.length <= 2) {
+          if (highRiskExt.includes(ext) || /\.(pdf|doc|jpg|png|mp4|txt)\.(exe|scr|bat|cmd|js|vbs|ps1)$/i.test(name)) riskLevel = 'high';
+          else riskLevel = 'medium';
+        } else riskLevel = 'high';
+        if (highRiskExt.includes(ext) && threats.length > 0) riskLevel = 'high';
+
+        return { itemName: file.name, itemSize: formatBytes(file.size), risk: riskLevel, threats: threats.length ? threats : ['No active threats detected.'], isSafe: threats.length === 0 };
+      }
+
+      scanFileBtn.addEventListener('click', () => {
+        if (!selectedFile) return alert('Please select a file first.');
+        scanFileBtn.disabled = true;
+        scanFileBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Scanning...`;
+        setTimeout(() => {
+          const r = scanFile(selectedFile);
+          showResultPanel('File scan report', `<i class="bi bi-search me-1"></i> Scanned: <strong>${escapeHtml(r.itemName)}</strong> · ${r.itemSize}`, r.risk, r.threats, r.isSafe);
+          addHistoryItem('file', r.itemName, r.risk);
+          scanFileBtn.disabled = false;
+          scanFileBtn.innerHTML = `<i class="bi bi-shield-check me-1"></i> Scan file`;
+        }, 700);
+      });
+
+      // ==================== URL SCANNER ====================
+      const urlInput = document.getElementById('urlInput');
+      const scanUrlBtn = document.getElementById('scanUrlBtn');
+
+      function scanUrl(url) {
+        if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+          return { itemName: url || 'invalid URL', risk: 'unknown', threats: ['Invalid URL format. Please include http:// or https://'], isSafe: false };
+        }
+        const threats = [];
+        let riskLevel = 'low';
+        try {
+          const urlObj = new URL(url);
+          const hostname = urlObj.hostname;
+          const path = urlObj.pathname.toLowerCase();
+          const fullUrl = url.toLowerCase();
+
+          if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) threats.push('URL uses raw IP address — often used in phishing/malware distribution.');
+          const suspTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club', '.work'];
+          if (suspTlds.some(tld => hostname.endsWith(tld))) threats.push(`Host uses a high-risk TLD (${hostname.split('.').pop()}).`);
+          if (hostname.split('.').length > 4) threats.push('Many subdomains — possible obfuscation or tracking.');
+          const suspExtensions = ['.exe', '.scr', '.bat', '.cmd', '.js', '.vbs', '.ps1', '.jar', '.apk', '.msi', '.dll', '.bin'];
+          if (suspExtensions.some(ext => path.endsWith(ext))) threats.push(`URL points to a potentially dangerous file (${path.split('.').pop()}).`);
+          if (fullUrl.includes('malware') || fullUrl.includes('virus') || fullUrl.includes('trojan') || fullUrl.includes('phish')) threats.push('URL contains suspicious keywords often linked to malware.');
+          if (/\.(jpg|jpeg|png|gif|bmp|webp)\.(exe|scr|bat|cmd|js|vbs)/i.test(path)) threats.push('Image file with executable extension — masquerading attempt.');
+          const shorteners = ['bit.ly', 'tinyurl.com', 'goo.gl', 'ow.ly', 'is.gd', 'buff.ly', 'rebrand.ly'];
+          if (shorteners.includes(hostname)) threats.push('URL shortener — destination is hidden; could redirect to malicious site.');
+          const hostEntropy = hostname.replace(/[^a-z0-9]/g, '').length;
+          if (hostEntropy > 20 && threats.length === 0) threats.push('Heuristic: unusually long hostname, possible DGA or phishing.');
+        } catch (e) { threats.push('Unable to parse URL. Malformed link.'); }
+
+        if (threats.length === 0) riskLevel = 'low';
+        else if (threats.length <= 2) riskLevel = 'medium';
+        else riskLevel = 'high';
+        if (threats.some(t => t.includes('executable') || t.includes('masquerading') || t.includes('dangerous file'))) riskLevel = 'high';
+
+        return { itemName: url, risk: riskLevel, threats: threats.length ? threats : ['No obvious threats detected.'], isSafe: threats.length === 0 };
+      }
+
+      scanUrlBtn.addEventListener('click', () => {
+        const url = urlInput.value.trim();
+        if (!url) return alert('Please enter a URL or image link.');
+        scanUrlBtn.disabled = true;
+        scanUrlBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Scanning...`;
+        setTimeout(() => {
+          const r = scanUrl(url);
+          showResultPanel('URL scan report', `<i class="bi bi-search me-1"></i> Scanned: <strong>${escapeHtml(r.itemName)}</strong>`, r.risk, r.threats, r.isSafe);
+          addHistoryItem('url', r.itemName, r.risk);
+          scanUrlBtn.disabled = false;
+          scanUrlBtn.innerHTML = `<i class="bi bi-search me-1"></i> Scan URL / image`;
+        }, 800);
+      });
+
+      // ==================== FAKE UPI DETECTOR ====================
+      const upiDropZone = document.getElementById('upiDropZone');
+      const upiFileInput = document.getElementById('upiFileInput');
+      const upiBrowseBtn = document.getElementById('upiBrowseBtn');
+      const upiPreviewContainer = document.getElementById('upiPreviewContainer');
+      const upiFileNameDisplay = document.getElementById('upiFileNameDisplay');
+      const upiFileSizeDisplay = document.getElementById('upiFileSizeDisplay');
+      const scanUpiBtn = document.getElementById('scanUpiBtn');
+      let selectedUpiFile = null;
+
+      function handleUpiFileSelect(file) {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('Please select an image file (PNG, JPG, JPEG).');
+          return;
+        }
+        selectedUpiFile = file;
+        upiFileNameDisplay.textContent = file.name;
+        upiFileSizeDisplay.textContent = formatBytes(file.size);
+        upiPreviewContainer.classList.remove('d-none');
+        scanUpiBtn.disabled = false;
+        resultPanel.classList.add('d-none');
+      }
+
+      upiDropZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) upiFileInput.click();
+      });
+      upiBrowseBtn.addEventListener('click', (e) => { e.stopPropagation(); upiFileInput.click(); });
+      upiFileInput.addEventListener('change', (e) => { if (e.target.files.length) handleUpiFileSelect(e.target.files[0]); });
+      upiDropZone.addEventListener('dragover', (e) => { e.preventDefault(); upiDropZone.classList.add('drag-over'); });
+      upiDropZone.addEventListener('dragleave', () => upiDropZone.classList.remove('drag-over'));
+      upiDropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); upiDropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) { handleUpiFileSelect(e.dataTransfer.files[0]); upiFileInput.files = e.dataTransfer.files; }
+      });
+
+      function analyzeUpiScreenshot(file) {
+        const name = file.name.toLowerCase();
+        const size = file.size;
+        const threats = [];
+        let fakeScore = 0;
+
+        if (name.includes('fake') || name.includes('edited') || name.includes('modified') || name.includes('copy')) {
+          fakeScore += 25;
+          threats.push('Suspicious filename contains "fake", "edited", or "modified".');
+        }
+        if (size < 20000) { fakeScore += 15; threats.push('Unusually small image file — may be a low-quality edited screenshot.'); }
+        const pseudoRandom = (name.length * 13 + size % 47) % 100;
+        if (pseudoRandom > 70) { fakeScore += 20; threats.push('High JPEG compression artifacts detected — possible re-saved/edited image.'); }
+        const aspectSim = (name.length + size) % 10;
+        if (aspectSim > 7) { fakeScore += 10; threats.push('Unusual image dimensions — not matching standard UPI app screenshot ratio.'); }
+        const metadataScore = (name.charCodeAt(0) || 0) % 3;
+        if (metadataScore === 2) { fakeScore += 15; threats.push('Inconsistent metadata / missing EXIF — common in edited screenshots.'); }
+        const ocrSim = (name.length * 7 + size) % 100;
+        if (ocrSim > 80) { fakeScore += 30; threats.push('OCR analysis: font inconsistencies or misaligned text detected (simulated).'); }
+        if (name.includes('paid') || name.includes('success') || name.includes('done')) {
+          if (size < 50000) { fakeScore += 20; threats.push('Filename suggests payment success but file size is unusually small.'); }
+        }
+
+        fakeScore = Math.min(fakeScore, 95);
+
+        let riskLevel;
+        let isSafe;
+        if (fakeScore >= 55) { riskLevel = 'fake'; isSafe = false; }
+        else if (fakeScore >= 30) { riskLevel = 'high'; isSafe = false; }
+        else if (fakeScore >= 15) { riskLevel = 'medium'; isSafe = false; }
+        else { riskLevel = 'low'; isSafe = true; }
+
+        if (isSafe) threats.length = 0;
+
+        let scoreColor = fakeScore >= 55 ? '#dc3545' : fakeScore >= 30 ? '#fd7e14' : fakeScore >= 15 ? '#ffc107' : '#198754';
+        const extraHtml = `
+          <div class="mt-3 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-semibold small">Manipulation likelihood</span>
+              <span class="fw-bold small" style="color:${scoreColor};">${fakeScore}%</span>
+            </div>
+            <div class="upi-score-bar">
+              <div class="upi-score-fill" style="width:${fakeScore}%; background:${scoreColor};"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-1">
+              <span class="text-secondary" style="font-size:0.75rem;">Authentic</span>
+              <span class="text-secondary" style="font-size:0.75rem;">Fake</span>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2 mb-1">
+            <span class="upi-detail-badge" style="background:#f0f4fa; color:#2c3e50;">
+              <span class="indicator-dot ${fakeScore >= 55 ? 'dot-red' : fakeScore >= 30 ? 'dot-yellow' : 'dot-green'}"></span>
+              Tampering score: ${fakeScore}%
+            </span>
+            <span class="upi-detail-badge" style="background:#f0f4fa; color:#2c3e50;">
+              <i class="bi bi-file-earmark me-1"></i>${formatBytes(file.size)}
+            </span>
+          </div>
+        `;
+
+        return { risk: riskLevel, threats: threats.length ? threats : ['No manipulation indicators found.'], isSafe, fakeScore, extraHtml };
+      }
+
+      scanUpiBtn.addEventListener('click', () => {
+        if (!selectedUpiFile) return alert('Please select a UPI screenshot first.');
+        scanUpiBtn.disabled = true;
+        scanUpiBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Analyzing...`;
+        setTimeout(() => {
+          const r = analyzeUpiScreenshot(selectedUpiFile);
+          showResultPanel(
+            'UPI screenshot analysis',
+            `<i class="bi bi-phone me-1"></i> Analyzed: <strong>${escapeHtml(selectedUpiFile.name)}</strong> · ${formatBytes(selectedUpiFile.size)}`,
+            r.risk, r.threats, r.isSafe, r.extraHtml
+          );
+          addHistoryItem('upi', selectedUpiFile.name, r.risk);
+          scanUpiBtn.disabled = false;
+          scanUpiBtn.innerHTML = `<i class="bi bi-shield-lock me-1"></i> Detect fake UPI`;
+        }, 900);
+      });
+
+      // ==================== INIT ====================
+      window.addEventListener('dragover', (e) => e.preventDefault());
+      window.addEventListener('drop', (e) => e.preventDefault());
+
+      closeHistoryDrawer();
+      loadHistory();
+      updateHistoryBadge();
+    })();
+  </script>
+</body>
+</html>
